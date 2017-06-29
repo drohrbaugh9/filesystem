@@ -5,12 +5,12 @@ import java.util.Arrays;
 public class PseudoFilesystem {
     
     static String[][] drive = new String[256][3];
-    static String[][] wdir;
     
     static final String NORMAL_FILE = "0";
     static final String DIRECTORY = "1";
     
     static String wd = "/";
+    static int wDir = 0;
     
     static boolean showPrompt = true;
 
@@ -19,13 +19,13 @@ public class PseudoFilesystem {
         
         ls();
         
-        cat("file2");
+        /*cat("file2");
         
         cat("dir1");
         
         cat("emptyFile");
         
-        rm("file1");
+        rm("file1");*/
         
         ls();
         
@@ -41,28 +41,32 @@ public class PseudoFilesystem {
         
         pwd();
         
-        ls("file2");
+        /*ls("file2");
         
         ls("file5");
         
-        ls("dir1");
+        ls("dir1");*/
         
         mkdir("dir2");
         
-        rm("dir2");
+        /*rm("dir2");
         
-        rm("thisFileShouldntExist");
+        rm("thisFileShouldntExist");*/
         
         /**/
-        System.out.println("");
+        System.out.println("\ndrive:");
         for (int i = 0; i < drive.length; i++) {
-            if (drive[i][0] != null) System.out.println(i + ": " + Arrays.toString(drive[i]));
+            if (drive[i][1] != null) System.out.println(i + ": " + Arrays.toString(drive[i]));
         }
+        System.out.print("\ntable:" + drive[0][2]);
         /**/
     }
     
     public static void cat(String filename) {
         if (showPrompt) System.out.println("$ cat " + filename);
+        
+        String tempTable = drive[wDir][2];
+        
         for (int i = 0; i < drive.length; i++) {
             if (drive[i][0].equals(filename)) {
                 if (drive[i][1].equals(DIRECTORY)) { 
@@ -90,61 +94,96 @@ public class PseudoFilesystem {
             if (wd.equals("/")) return;
             wd = wd.substring(0, wd.length() - 1); // remove "/" at end of wd
             wd = wd.substring(0, wd.lastIndexOf('/') + 1);
+            wDir = Integer.parseInt("" + drive[wDir][2].charAt(drive[wDir][2].indexOf("..") + 3));
             return;
         }
         
-        for (int i = 0; i < drive.length; i++) {
+        String tempTable = drive[0][2];
+        String fileNameToCheck;
+        while (tempTable.length() > 0) {
+            fileNameToCheck = tempTable.substring(0, tempTable.indexOf(";"));
+            if (fileNameToCheck.equals(dirName)) {
+                if (drive[Integer.parseInt("" + tempTable.charAt(tempTable.indexOf(";") + 2))][1].equals(DIRECTORY)) {
+                    
+                } else {
+                    //error
+                }
+                tempTable = "";
+            } else {
+                tempTable = tempTable.substring(tempTable.indexOf(';') + 1, tempTable.length());
+            }
+        }
+        
+        /*for (int i = 0; i < drive.length; i++) {
             if (drive[i][0] != null && drive[i][0].equals(dirName)) {
                 wd = wd + dirName;
                 i = drive.length;
                 found = true;
             }
-        }
+        }*/
+        
         if (wd.charAt(wd.length() - 1) != '/') wd = wd + "/";
         if (!found) System.out.println("cd: " + dirName + ": No such file or directory");
     }
     
-    public static void write(int index, String data) {
+    private static void write(int index, String data) {
         drive[index][2] = data;
     }
     
     public static void ls() {
         if (showPrompt) System.out.println("$ ls");
         
-        for (String[] i : drive) {
-            if (i[0] != null && i[0].length() > 0) System.out.println(i[0]);
-        }
+        
     }
     
-    public static void ls(String filename) {
+    /*public static void ls(String filename) {
         boolean found = false;
         
         if (showPrompt) System.out.println("$ ls " + filename);
         
-        for (int i = 0; i < drive.length; i++) {
-            if (drive[i][0] != null && drive[i][0].equals(filename)) {
-                if (drive[i][1] == NORMAL_FILE) {
-                    System.out.println(drive[i][0]);
-                    i = drive.length;
-                    found = true;
-                } else if (drive[i][1] == DIRECTORY) {
-                    System.out.println("ls: cannot access '" + filename + "': Directories not supported yet");
-                    return;
+        
+        if (wd.equals("/")) {
+            for (int i = 0; i < table.length; i++) {
+                if (table[i][0] != null && table[i][0].equals(filename)) {
+                    if (drive[Integer.parseInt(table[i][1])][1] == NORMAL_FILE) {
+                        System.out.println(table[i][0]);
+                        i = table.length;
+                        found = true;
+                    } else if (drive[Integer.parseInt(table[i][1])][1] == DIRECTORY) {
+                        System.out.println("ls: cannot access '" + filename + "': Directories not supported yet");
+                        return;
+                    }
+                }
+            }
+        } else {
+            
+            for (int i = 0; i < table.length; i++) {
+                if (table[i][0] != null && table[i][0].equals(filename)) {
+                    if (drive[Integer.parseInt(table[i][1])][1] == NORMAL_FILE) {
+                        System.out.println(table[i][0]);
+                        i = table.length;
+                        found = true;
+                    } else if (drive[Integer.parseInt(table[i][1])][1] == DIRECTORY) {
+                        System.out.println("ls: cannot access '" + filename + "': Directories not supported yet");
+                        return;
+                    }
                 }
             }
         }
         
         if (!found) System.out.println("ls: cannot access '" + filename + "': No such file or directory");
-    }
+    }*/
     
     public static void mkdir(String dirName) {
         if (showPrompt) System.out.println("$ mkdir " + dirName);
         
-        for (int i = 0; i < drive.length; i++) {
-            if (drive[i][0] == null) {
-                drive[i][0] = dirName;
-                drive[i][1] = DIRECTORY;
-                i = drive.length;
+        drive[0][2] = drive[0][2] + dirName + ";";
+        for (int j = 0; j < drive.length; j++) {
+            if (drive[j][0] == null) {
+                drive[j][0] = dirName;
+                drive[j][1] = DIRECTORY;
+                drive[0][2] = drive[0][2] + " " + j + ";\n";
+                j = drive.length;
             }
         }
     }
@@ -182,10 +221,12 @@ public class PseudoFilesystem {
     public static void touch(String filename) {
         if (showPrompt) System.out.println("$ touch " + filename);
         
+        drive[0][2] = drive[0][2] + filename + ";";
         for (int i = 0; i < drive.length; i++) {
             if (drive[i][0] == null) {
                 drive[i][0] = filename;
                 drive[i][1] = NORMAL_FILE;
+                drive[0][2] = drive[0][2] + " " + i + ";\n";
                 i = drive.length;
             }
         }
@@ -195,13 +236,21 @@ public class PseudoFilesystem {
         boolean old = showPrompt;
         showPrompt = false;
         
+        drive[0][0] = ".table";
+        drive[0][2] = "\n.; 0;\n.. 0;\n";
+        
         touch("file1");
         touch("file2");
         touch("emptyFile");
         
         mkdir("dir1");
         
-        write(1, "text in file2");
+        write(2, "text in file2");
+        
+        drive[5][0] = "fake_file1"; drive[5][1] = NORMAL_FILE;
+        drive[6][0] = "fake_file2"; drive[6][1] = NORMAL_FILE;
+        
+        write(4, "\n.; 4;\n.. 0;\nfake_file1; 5;\nfake_file2; 6;\n");
         
         showPrompt = old;
     }
